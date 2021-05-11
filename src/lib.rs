@@ -1,8 +1,15 @@
+use crate::draw::clear_canvas;
+use crate::ant::Ant;
+use crate::ant::Point;
 use crate::draw::draw_box;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 mod draw;
+mod ant;
 
 #[wasm_bindgen]
 extern {
@@ -35,14 +42,38 @@ pub fn add(n1: i32, n2: i32) -> i32 {
     n1 + n2
 }
 
+fn window() -> web_sys::Window {
+    web_sys::window().expect("no global `window` exists")
+}
+
+fn request_animation_frame(f: &Closure<dyn FnMut()>) {
+    window()
+        .request_animation_frame(f.as_ref().unchecked_ref())
+        .expect("should register `requestAnimationFrame` OK");
+}
+
 #[wasm_bindgen]
 pub fn create_elementt() {
     log("UEEEEEEEE");
     let canvas = document.query_selector("#game-canvas").unwrap().dyn_into::<web_sys::HtmlCanvasElement>();
-    
+ 
+    let mut ant = Ant { pos: Point { x: 1.0, y: 6.0 }, direction_angle: 100.0} ;
     let a = match canvas {
         Err(_) => return (),
         Ok(f) =>  f,
     };
-    draw_box(a, 5.0, 5.0);
+    
+    let f = Rc::new(RefCell::new(None));
+    let g = f.clone();
+    *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+        ant.next();
+        clear_canvas(&a);
+        draw_box(&a, ant.pos.x, ant.pos.y);
+
+        request_animation_frame(f.borrow().as_ref().unwrap());
+    }) as Box<dyn FnMut()>));
+
+    request_animation_frame(g.borrow().as_ref().unwrap());
+
+    
 }
