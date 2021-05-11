@@ -1,3 +1,4 @@
+use crate::map::GameMap;
 use crate::draw::clear_canvas;
 use crate::ant::Ant;
 use crate::ant::Point;
@@ -10,6 +11,7 @@ use std::rc::Rc;
 
 mod draw;
 mod ant;
+mod map;
 
 #[wasm_bindgen]
 extern {
@@ -55,20 +57,25 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
 #[wasm_bindgen]
 pub fn create_elementt() {
     log("UEEEEEEEE");
-    let canvas = document.query_selector("#game-canvas").unwrap().dyn_into::<web_sys::HtmlCanvasElement>();
- 
-    let mut ant = Ant { pos: Point { x: 1.0, y: 6.0 }, direction_angle: 100.0} ;
-    let a = match canvas {
+    let maybe_canvas = document.query_selector("#game-canvas").unwrap().dyn_into::<web_sys::HtmlCanvasElement>();
+    let canvas = match maybe_canvas {
         Err(_) => return (),
         Ok(f) =>  f,
     };
+
+    let map = GameMap { width: 500.0, height: 500.0} ;
+    let mut ant = Ant { pos: Point { x: 1.0, y: 6.0 }, direction_angle: 100.0} ;
+
+    
+    canvas.set_width(map.width as u32);
+    canvas.set_height(map.height as u32);
     
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
         ant.next();
-        clear_canvas(&a);
-        draw_box(&a, ant.pos.x, ant.pos.y);
+        clear_canvas(&canvas);
+        draw_box(&canvas, ant.pos.x, ant.pos.y);
 
         request_animation_frame(f.borrow().as_ref().unwrap());
     }) as Box<dyn FnMut()>));

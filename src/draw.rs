@@ -10,9 +10,9 @@ pub fn draw_box(canvas: &web_sys::HtmlCanvasElement, x: f64, y: f64) {
         .unwrap();
 
     context.begin_path();
-    let a = wasm_bindgen::JsValue::from("black");
-    context.set_stroke_style(&a);
-    context.rect(x, y, 50.0, 50.0);
+    let js_color = wasm_bindgen::JsValue::from("black");
+    context.set_stroke_style(&js_color);
+    context.fill_rect(x, y, 50.0, 50.0);
     context.stroke();
 }
 

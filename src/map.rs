@@ -1,8 +1,8 @@
-pub struct Map {
+pub struct GameMap {
     pub width: f64,
     pub height: f64,
 }
 
-impl Map {
+impl GameMap {
     
 }
