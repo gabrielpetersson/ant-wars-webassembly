@@ -1,7 +1,7 @@
 use crate::map::GameMap;
 use crate::draw::clear_canvas;
 use crate::ant::Ant;
-use crate::ant::Point;
+use crate::ant::Team;
 use crate::draw::draw_box;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -64,8 +64,8 @@ pub fn create_elementt() {
     };
 
     let map = GameMap { width: 500.0, height: 500.0} ;
-    let mut ant = Ant { pos: Point { x: 1.0, y: 6.0 }, direction_angle: 100.0} ;
 
+    let mut ants = vec![Ant::new(Team::TOP), Ant::new(Team::BOTTOM)];
     
     canvas.set_width(map.width as u32);
     canvas.set_height(map.height as u32);
@@ -73,9 +73,13 @@ pub fn create_elementt() {
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        ant.next();
+        for ant in &mut ants {
+            ant.next();
+            draw_box(&canvas, ant.pos.x, ant.pos.y);
+        }
+            
         clear_canvas(&canvas);
-        draw_box(&canvas, ant.pos.x, ant.pos.y);
+        
 
         request_animation_frame(f.borrow().as_ref().unwrap());
     }) as Box<dyn FnMut()>));

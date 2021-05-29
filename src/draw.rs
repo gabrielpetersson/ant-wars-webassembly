@@ -12,7 +12,7 @@ pub fn draw_box(canvas: &web_sys::HtmlCanvasElement, x: f64, y: f64) {
     context.begin_path();
     let js_color = wasm_bindgen::JsValue::from("black");
     context.set_stroke_style(&js_color);
-    context.fill_rect(x, y, 50.0, 50.0);
+    context.fill_rect(x, y, 10.0, 20.0);
     context.stroke();
 }
 
