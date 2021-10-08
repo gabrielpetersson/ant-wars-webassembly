@@ -30,7 +30,7 @@ impl Painter {
         self.set_x_offset(self.y_offset + x);
     }
     
-    pub fn draw_box(&mut self, x: f64, y: f64, width: f64, height: f64, color: String) {
+                                                                                                                                                pub fn draw_box(&mut self, x: f64, y: f64, width: f64, height: f64, color: String) {
         let context = self.canvas
             .get_context("2d")
             .unwrap()

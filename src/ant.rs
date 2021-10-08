@@ -1,3 +1,4 @@
+use crate::Anthill;
 use crate::get_random_i32;
 use crate::GameMap;
 use crate::log;
@@ -44,27 +45,31 @@ pub struct Ant {
     pub target_id: String,
 }
 
-fn get_starting_point(team: &Team, map_width: i32) -> Point {
-    let x = get_random_i32(0, map_width);
+fn get_starting_point(team: &Team, anthill_pos: Point) -> Point {
+    let x =  anthill_pos.x as i32;
+    let y =  anthill_pos.y as i32;
+    let spread = 70;
+    let x = get_random_i32(x - spread, x + spread);
+    let x = get_random_i32(y - spread, y + spread);
     if matches!(team, Team::TOP) {
-        return Point { x: x as f64, y: 40.0 }
+        return Point { x: x as f64, y: y as f64 }
     }
 
-    return Point { x: x as f64, y: 500.0 }
+    return Point { x: x as f64, y: y as f64 }
 }
 
 impl Ant {
     fn get_delta(&mut self) -> f64 {
         if matches!(self.team, Team::TOP) {
             return 1.0
-        }
+        }   
 
         return -1.0
     }
 
-    pub fn new(team: Team, map: &GameMap) -> Ant {
+    pub fn new(team: Team, anthill: &Anthill) -> Ant {
         let t = team.clone();
-        Ant { team, pos: get_starting_point(&t, map.width as i32), direction_angle: 100.0, intention: Intention::STROLL, damage: 10.0, health: 100.0, cooldown: 0.0, id: nanoid!(), target_id: nanoid!() }
+        Ant { team, pos: get_starting_point(&t, anthill.pos), direction_angle: 100.0, intention: Intention::STROLL, damage: 10.0, health: 100.0, cooldown: 0.0, id: nanoid!(), target_id: nanoid!() }
     }
 
     pub fn get_distance_to_ant(&mut self, ant: &Ant) -> f64{

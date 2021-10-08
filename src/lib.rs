@@ -75,7 +75,7 @@ pub fn create_element() {
 
     let map = GameMap { width: 3000.0, height: 3000.0} ;
 
-    let mut ants: Vec<Ant> = [Ant::new(Team::TOP, &map), Ant::new(Team::BOTTOM, &map)].to_vec();
+    // let mut ants: Vec<Ant> = [Ant::new(Team::TOP, &map), Ant::new(Team::BOTTOM, &map)].to_vec();
     let anthills =  vec![Anthill::new(Team::TOP, 30.0, 30.0), Anthill::new(Team::BOTTOM, 300.0, 500.0)];
     
     canvas.set_width(map.width as u32);
@@ -111,22 +111,39 @@ pub fn create_element() {
     let g = f.clone();
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
         map_painter.clear_map();
-        let ants_clone: Vec<Ant> = (*ants.clone()).to_vec();
 
-        let num = get_random_i32(0, 30);
-        let mut new_ant: Option<Ant> = Option::None;
-        if num == 0 {
-            new_ant = Some(Ant::new(Team::TOP, &map));
-        }
-        if num == 1 {
-            new_ant = Some(Ant::new(Team::BOTTOM, &map));
-        }
-        match new_ant {
-            Option::None => (),
-            Option::Some(new_ant) =>{
-                ants.insert(0, new_ant); 
+        let ants: Vec<Ant> = vec![];
+        for anthill in anthills {
+            for ant in anthill.ants {
+                ants.push(ant);
             }
         }
+
+        let ants_clone: Vec<Ant> = (*ants.clone()).to_vec();
+        let num = get_random_i32(0, 30);
+        // let mut new_ant: Option<Ant> = Option::None;
+
+        for anthill in anthills {
+            if (num == 0) & (anthill.team == Team::BOTTOM) {
+                anthill.spawn_ant()
+            }
+            if (num == 1) & (anthill.team == Team::TOP) {
+                anthill.spawn_ant()
+            }
+        }
+        
+        // if num == 0 {
+            
+        // }
+        // if num == 1 {
+
+        // }
+        // match new_ant {
+        //     Option::None => (),
+        //     Option::Some(new_ant) =>{
+        //         ants.insert(0, new_ant); 
+        //     }
+        // }
         
         let mut attacked_ant_ids: Vec<String> = vec![];
         for ant in ants.iter_mut() {
