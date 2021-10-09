@@ -43,6 +43,12 @@ extern {
     fn log(s: &str);
 }
 
+// console_log!("1 + 3 = {}", 1 + 3);
+// macro_rules! log {
+//     ($($t:tt)*) => (console_log(&format_args!($($t)*).to_string()))
+// }
+
+
 #[wasm_bindgen]
 pub fn add(n1: i32, n2: i32) -> i32 {
     n1 + n2
@@ -75,75 +81,57 @@ pub fn create_element() {
 
     let map = GameMap { width: 3000.0, height: 3000.0} ;
 
-    // let mut ants: Vec<Ant> = [Ant::new(Team::TOP, &map), Ant::new(Team::BOTTOM, &map)].to_vec();
-    let anthills =  vec![Anthill::new(Team::TOP, 30.0, 30.0), Anthill::new(Team::BOTTOM, 300.0, 500.0)];
+    let mut anthills =  vec![Anthill::new(Team::TOP, 400.0, 150.0), Anthill::new(Team::BOTTOM, 360.0, 870.0)];
     
     canvas.set_width(map.width as u32);
     canvas.set_height(map.height as u32);
     let mut map_painter = Painter::new(canvas); 
 
-    // let mut test  = || {
-    //     map_painter.increment_x_offset(10.0);
-    // };
-
-    // let cb = Closure::wrap(Box::new(|event: web_sys::KeyboardEvent | { 
-    //     // log(&"he".to_string());
-    //     web_sys::console::log_1(&event);
-    //     if event.key_code() == 68 {
-    //         // test()
-    //         map_painter.increment_x_offset(10.0);
-    //     }
-    //     else if event.key_code() == 87 {
-    //         // map_painter.increment_y_offset(-10.0);
-    //     }
-    //     else if event.key_code() == 65 {
-    //         // map_painter.increment_x_offset(-10.0);
-    //     }
-    //     else if event.key_code() == 83 {
-    //         // map_painter.increment_y_offset(10.0);
-    //     }
-    // }) as Box<dyn FnMut(_)>);
-
-    // document.add_event_listener_with_callback("keydown", cb.as_ref().unchecked_ref()).expect("error");
-    // cb.forget();
+    let cb = Closure::wrap(Box::new(|event: web_sys::KeyboardEvent | { 
+        // log(&"he".to_string());
+        web_sys::console::log_1(&event);
+        if event.key_code() == 68 {
+            // test()
+            map_painter.increment_x_offset(10.0);
+        }
+        else if event.key_code() == 87 {
+            // map_painter.increment_y_offset(-10.0);
+        }
+        else if event.key_code() == 65 {
+            // map_painter.increment_x_offset(-10.0);
+        }
+        else if event.key_code() == 83 {
+            // map_painter.increment_y_offset(10.0);
+        }
+    }) as Box<dyn FnMut(_)>);
+    document.add_event_listener_with_callback("keydown", cb.as_ref().unchecked_ref()).expect("error");
+    cb.forget();
 
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
         map_painter.clear_map();
 
-        let ants: Vec<Ant> = vec![];
-        for anthill in anthills {
-            for ant in anthill.ants {
-                ants.push(ant);
-            }
-        }
+        let mut ants: Vec<&mut Ant> = vec![];
+        let mut ants_clone: Vec<Ant> = vec![];
 
-        let ants_clone: Vec<Ant> = (*ants.clone()).to_vec();
         let num = get_random_i32(0, 30);
-        // let mut new_ant: Option<Ant> = Option::None;
+        for anthill in anthills.iter_mut() {
+            anthill.remove_dead_ants();
+            map_painter.draw_anthill(&anthill);
 
-        for anthill in anthills {
             if (num == 0) & (anthill.team == Team::BOTTOM) {
                 anthill.spawn_ant()
             }
             if (num == 1) & (anthill.team == Team::TOP) {
                 anthill.spawn_ant()
             }
-        }
-        
-        // if num == 0 {
-            
-        // }
-        // if num == 1 {
 
-        // }
-        // match new_ant {
-        //     Option::None => (),
-        //     Option::Some(new_ant) =>{
-        //         ants.insert(0, new_ant); 
-        //     }
-        // }
+            for ant in anthill.ants.iter_mut() {
+                ants_clone.push(ant.clone());
+                ants.push(ant);
+            }
+        }
         
         let mut attacked_ant_ids: Vec<String> = vec![];
         for ant in ants.iter_mut() {
@@ -163,19 +151,7 @@ pub fn create_element() {
                 }
             }
         } 
-
-        let mut alive_ants: Vec<Ant> = [].to_vec();
-        for ant in ants.iter() {
-            if ant.health > 0.0 {
-                alive_ants.insert(0, ant.clone());
-            }
-        } 
-        ants = alive_ants;
-
-
-        for anthill in anthills.iter() {
-            map_painter.draw_anthill(anthill);
-        }       
+       
         request_animation_frame(f.borrow().as_ref().unwrap());
     }) as Box<dyn FnMut()>));
 

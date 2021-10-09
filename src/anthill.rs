@@ -17,7 +17,19 @@ impl Anthill {
     }
 
     pub fn spawn_ant(&mut self) {
-        let ant = Ant::new(Team::TOP, &self);
+        let ant = Ant::new(self.team.clone(), &self);
         self.ants.push(ant);
     }
+
+    pub fn remove_dead_ants(&mut self) {
+        let mut alive_ants: Vec<Ant> = [].to_vec();
+        for ant in self.ants.iter_mut() {
+            if ant.health > 0.0 {
+                alive_ants.insert(0, ant.clone());
+            }
+        }
+        self.ants = alive_ants;
+    }
+
+    
 }

@@ -13,8 +13,8 @@ pub struct Point {
 
 #[derive(Clone, PartialEq)]
 pub enum Team {
-    TOP,
-    BOTTOM
+    TOP = 0,
+    BOTTOM = 1 
 }
 
 #[derive(Clone, Debug)]
@@ -45,16 +45,15 @@ pub struct Ant {
     pub target_id: String,
 }
 
-fn get_starting_point(team: &Team, anthill_pos: Point) -> Point {
+fn get_starting_point(anthill_pos: &Point) -> Point {
+    let spread = 70;
+
     let x =  anthill_pos.x as i32;
     let y =  anthill_pos.y as i32;
-    let spread = 70;
+    
     let x = get_random_i32(x - spread, x + spread);
-    let x = get_random_i32(y - spread, y + spread);
-    if matches!(team, Team::TOP) {
-        return Point { x: x as f64, y: y as f64 }
-    }
-
+    let y = get_random_i32(y - spread, y + spread);
+    
     return Point { x: x as f64, y: y as f64 }
 }
 
@@ -68,8 +67,7 @@ impl Ant {
     }
 
     pub fn new(team: Team, anthill: &Anthill) -> Ant {
-        let t = team.clone();
-        Ant { team, pos: get_starting_point(&t, anthill.pos), direction_angle: 100.0, intention: Intention::STROLL, damage: 10.0, health: 100.0, cooldown: 0.0, id: nanoid!(), target_id: nanoid!() }
+        Ant { team, pos: get_starting_point(&anthill.pos), direction_angle: 100.0, intention: Intention::STROLL, damage: 10.0, health: 100.0, cooldown: 0.0, id: nanoid!(), target_id: nanoid!() }
     }
 
     pub fn get_distance_to_ant(&mut self, ant: &Ant) -> f64{
