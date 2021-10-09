@@ -74,38 +74,35 @@ pub fn create_element() {
     let document = window.document().expect("expecting a document on window");
     
     let maybe_canvas = document.query_selector("#game-canvas").unwrap().unwrap().dyn_into::<web_sys::HtmlCanvasElement>();
-    let canvas = match maybe_canvas {
+    let map_canvas = match maybe_canvas {
         Err(_) => return (),
         Ok(f) =>  f,
     };
 
     let map = GameMap { width: 3000.0, height: 3000.0} ;
-
-    let mut anthills =  vec![Anthill::new(Team::TOP, 400.0, 150.0), Anthill::new(Team::BOTTOM, 360.0, 870.0)];
-    
-    canvas.set_width(map.width as u32);
-    canvas.set_height(map.height as u32);
-    let mut map_painter = Painter::new(canvas); 
+    map_canvas.set_width(map.width as u32); 
+    map_canvas.set_height(map.height as u32);
+    let mut map_painter = Painter::new(map_canvas); 
 
     let cb = Closure::wrap(Box::new(|event: web_sys::KeyboardEvent | { 
-        // log(&"he".to_string());
         web_sys::console::log_1(&event);
         if event.key_code() == 68 {
-            // test()
             map_painter.increment_x_offset(10.0);
         }
         else if event.key_code() == 87 {
-            // map_painter.increment_y_offset(-10.0);
+            map_painter.increment_y_offset(-10.0);
         }
         else if event.key_code() == 65 {
-            // map_painter.increment_x_offset(-10.0);
+            map_painter.increment_x_offset(-10.0);
         }
         else if event.key_code() == 83 {
-            // map_painter.increment_y_offset(10.0);
+            map_painter.increment_y_offset(10.0);
         }
     }) as Box<dyn FnMut(_)>);
     document.add_event_listener_with_callback("keydown", cb.as_ref().unchecked_ref()).expect("error");
     cb.forget();
+
+    let mut anthills =  vec![Anthill::new(Team::TOP, 400.0, 150.0), Anthill::new(Team::BOTTOM, 360.0, 870.0)];
 
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();
