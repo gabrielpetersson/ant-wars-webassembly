@@ -1,13 +1,13 @@
+mod ant;
 mod anthill;
 mod draw;
-mod ant;
 mod map;
 
-use crate::draw::Painter;
-use crate::map::GameMap;
 use crate::ant::Ant;
 use crate::ant::Team;
 use crate::anthill::Anthill;
+use crate::draw::Painter;
+use crate::map::GameMap;
 
 use rand::Rng;
 use wasm_bindgen::prelude::*;
@@ -18,7 +18,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 #[wasm_bindgen]
-extern {
+extern "C" {
     type HTMLDocument;
     type Element;
 
@@ -64,29 +64,39 @@ pub fn get_random_i32(from: i32, to: i32) -> i32 {
 
 #[wasm_bindgen]
 pub fn create_element() {
-    let window = web_sys::window().expect("global window does not exists");    
+    let window = web_sys::window().expect("global window does not exists");
     let document = window.document().expect("expecting a document on window");
-    
-    let maybe_canvas = document.query_selector("#game-canvas").unwrap().unwrap().dyn_into::<web_sys::HtmlCanvasElement>();
+
+    let maybe_canvas = document
+        .query_selector("#game-canvas")
+        .unwrap()
+        .unwrap()
+        .dyn_into::<web_sys::HtmlCanvasElement>();
     let canvas = match maybe_canvas {
         Err(_) => return (),
-        Ok(f) =>  f,
+        Ok(f) => f,
     };
 
-    let map = GameMap { width: 3000.0, height: 3000.0} ;
+    let map = GameMap {
+        width: 3000.0,
+        height: 3000.0,
+    };
 
     // let mut ants: Vec<Ant> = [Ant::new(Team::TOP, &map), Ant::new(Team::BOTTOM, &map)].to_vec();
-    let anthills =  vec![Anthill::new(Team::TOP, 30.0, 30.0), Anthill::new(Team::BOTTOM, 300.0, 500.0)];
-    
+    let mut anthills = vec![
+        Anthill::new(Team::TOP, 30.0, 30.0),
+        Anthill::new(Team::BOTTOM, 300.0, 500.0),
+    ];
+
     canvas.set_width(map.width as u32);
     canvas.set_height(map.height as u32);
-    let mut map_painter = Painter::new(canvas); 
+    let mut map_painter = Painter::new(canvas);
 
     // let mut test  = || {
     //     map_painter.increment_x_offset(10.0);
     // };
 
-    // let cb = Closure::wrap(Box::new(|event: web_sys::KeyboardEvent | { 
+    // let cb = Closure::wrap(Box::new(|event: web_sys::KeyboardEvent | {
     //     // log(&"he".to_string());
     //     web_sys::console::log_1(&event);
     //     if event.key_code() == 68 {
@@ -109,13 +119,13 @@ pub fn create_element() {
 
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();
-    *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+    *g.borrow_mut() = Some(Closure::once(Box::new(move || {
         map_painter.clear_map();
 
-        let ants: Vec<Ant> = vec![];
-        for anthill in anthills {
-            for ant in anthill.ants {
-                ants.push(ant);
+        let mut ants: Vec<Ant> = vec![];
+        for anthill in anthills.iter() {
+            for ant in anthill.ants.iter() {
+                ants.push(ant.clone());
             }
         }
 
@@ -123,7 +133,7 @@ pub fn create_element() {
         let num = get_random_i32(0, 30);
         // let mut new_ant: Option<Ant> = Option::None;
 
-        for anthill in anthills {
+        for anthill in anthills.iter_mut() {
             if (num == 0) & (anthill.team == Team::BOTTOM) {
                 anthill.spawn_ant()
             }
@@ -131,9 +141,9 @@ pub fn create_element() {
                 anthill.spawn_ant()
             }
         }
-        
+
         // if num == 0 {
-            
+
         // }
         // if num == 1 {
 
@@ -141,17 +151,17 @@ pub fn create_element() {
         // match new_ant {
         //     Option::None => (),
         //     Option::Some(new_ant) =>{
-        //         ants.insert(0, new_ant); 
+        //         ants.insert(0, new_ant);
         //     }
         // }
-        
+
         let mut attacked_ant_ids: Vec<String> = vec![];
         for ant in ants.iter_mut() {
             ant.update_intention(&ants_clone);
             let attacked_ant_id = ant.update_position(&ants_clone);
             match attacked_ant_id {
                 Option::Some(ant_id) => attacked_ant_ids.push(ant_id),
-                Option::None => ()
+                Option::None => (),
             }
             map_painter.draw_ant(ant);
         }
@@ -162,24 +172,21 @@ pub fn create_element() {
                     ant.take_damage(20.0);
                 }
             }
-        } 
+        }
 
         let mut alive_ants: Vec<Ant> = [].to_vec();
         for ant in ants.iter() {
             if ant.health > 0.0 {
                 alive_ants.insert(0, ant.clone());
             }
-        } 
+        }
         ants = alive_ants;
-
 
         for anthill in anthills.iter() {
             map_painter.draw_anthill(anthill);
-        }       
+        }
         request_animation_frame(f.borrow().as_ref().unwrap());
-    }) as Box<dyn FnMut()>));
+    })));
 
     request_animation_frame(g.borrow().as_ref().unwrap());
-
-    
 }
